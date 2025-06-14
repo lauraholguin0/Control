@@ -4,9 +4,12 @@ from PIL import Image
 import os
 
 # Configuración
-MODEL_PATH = "modelo_final_flora.keras"
+MODEL_PATH = "modelo_entrenado.keras"
 CLASSES_PATH = "clases_flora.txt"
 IMG_SIZE = (224, 224)
+
+# Ruta donde están las carpetas con las imágenes originales (ajusta según tu estructura)
+DATASET_DIR = "Flora_dataset_final"
 
 def load_model_and_classes():
     try:
@@ -22,6 +25,17 @@ def load_model_and_classes():
     except Exception as e:
         print(f"Error al cargar modelo: {str(e)}")
         raise
+
+def count_images_per_class(dataset_dir, class_names):
+    counts = {}
+    for class_name in class_names:
+        class_path = os.path.join(dataset_dir, class_name)
+        if os.path.exists(class_path) and os.path.isdir(class_path):
+            count = len([f for f in os.listdir(class_path) if f.lower().endswith(('.png', '.jpg', '.jpeg'))])
+            counts[class_name] = count
+        else:
+            counts[class_name] = 0
+    return counts
 
 def preprocess_image(image_path):
     try:
@@ -55,12 +69,15 @@ def predict_image(model, class_names, image_path):
 def main():
     model, class_names = load_model_and_classes()
     
-    print(f"\n🔍 Modelo de clasificación con {len(class_names)} categorías:")
-    print("Categorías disponibles:")
-    for i, clase in enumerate(class_names, 1):
-        print(f"{i}. {clase}")
+    # Contar imágenes por clase en el dataset original
+    counts = count_images_per_class(DATASET_DIR, class_names)
     
-    image_path = ("Cercos siliquastrum-6.png")
+    print(f"\n🔍 Modelo de clasificación con {len(class_names)} categorías:")
+    print("Categorías disponibles y número de imágenes por clase:")
+    for i, clase in enumerate(class_names, 1):
+        print(f"📂 {i}. {clase} — {counts.get(clase, 0)} imágenes")
+    
+    image_path = "Imagenes de prueba/Jazmin_azul.jpeg"
     
     if not os.path.exists(image_path):
         print("❌ Error: La imagen no existe")
